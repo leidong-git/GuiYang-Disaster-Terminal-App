@@ -1,0 +1,135 @@
+{
+  "id": "4019760",
+  "name": "贵阳市防灾减灾智慧终端",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "1211",
+      "name": "云下载",
+      "font_class": "yunxiazai",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "97268",
+      "name": "周边客户商家",
+      "font_class": "weibiaoti1",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    },
+    {
+      "icon_id": "4784148",
+      "name": "预警",
+      "font_class": "yujing",
+      "unicode": "e664",
+      "unicode_decimal": 58980
+    },
+    {
+      "icon_id": "18169975",
+      "name": "信号塔,卫星信号",
+      "font_class": "satellite-signal-full",
+      "unicode": "e959",
+      "unicode_decimal": 59737
+    },
+    {
+      "icon_id": "4908295",
+      "name": "暂停",
+      "font_class": "zanting",
+      "unicode": "e662",
+      "unicode_decimal": 58978
+    },
+    {
+      "icon_id": "4908329",
+      "name": "播放",
+      "font_class": "bofang",
+      "unicode": "e663",
+      "unicode_decimal": 58979
+    },
+    {
+      "icon_id": "3279356",
+      "name": "辅助决策",
+      "font_class": "gaiicon-",
+      "unicode": "e6d4",
+      "unicode_decimal": 59092
+    },
+    {
+      "icon_id": "6262701",
+      "name": "分类_hover",
+      "font_class": "fenlei_hover",
+      "unicode": "e603",
+      "unicode_decimal": 58883
+    },
+    {
+      "icon_id": "734936",
+      "name": "大风",
+      "font_class": "dafeng",
+      "unicode": "e68d",
+      "unicode_decimal": 59021
+    },
+    {
+      "icon_id": "3207722",
+      "name": "水",
+      "font_class": "icon-humidity",
+      "unicode": "e60b",
+      "unicode_decimal": 58891
+    },
+    {
+      "icon_id": "13805010",
+      "name": "温度",
+      "font_class": "wendu",
+      "unicode": "e788",
+      "unicode_decimal": 59272
+    },
+    {
+      "icon_id": "28606912",
+      "name": "大气湿度",
+      "font_class": "daqishidu",
+      "unicode": "e6bd",
+      "unicode_decimal": 59069
+    },
+    {
+      "icon_id": "5387522",
+      "name": "关闭",
+      "font_class": "guanbi1",
+      "unicode": "eaf2",
+      "unicode_decimal": 60146
+    },
+    {
+      "icon_id": "3886487",
+      "name": "基站管理",
+      "font_class": "jizhanguanli",
+      "unicode": "eb69",
+      "unicode_decimal": 60265
+    },
+    {
+      "icon_id": "11874490",
+      "name": "地址",
+      "font_class": "dizhi",
+      "unicode": "e618",
+      "unicode_decimal": 58904
+    },
+    {
+      "icon_id": "4320336",
+      "name": "登录用户名",
+      "font_class": "dengluyonghuming",
+      "unicode": "e653",
+      "unicode_decimal": 58963
+    },
+    {
+      "icon_id": "4320350",
+      "name": "密码",
+      "font_class": "mima",
+      "unicode": "e659",
+      "unicode_decimal": 58969
+    },
+    {
+      "icon_id": "27253672",
+      "name": "验证码",
+      "font_class": "yanzhengma",
+      "unicode": "e613",
+      "unicode_decimal": 58899
+    }
+  ]
+}
