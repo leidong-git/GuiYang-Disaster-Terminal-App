@@ -1,5 +1,5 @@
 //格点数据解析
-const GetLattice = function(data, code) {
+const GetLattice = function(data, code, color_data) {
 	let lon = code.minLon //起始经度
 	let lat = code.maxLat //起始纬度
 	let xNum = code.latSpan //横向个数
@@ -31,34 +31,34 @@ const GetLattice = function(data, code) {
 	} 
 	*/
 
-	//let geojson = GetD3Geojson(data, x_list, color_data)
+	let geojson = GetD3Geojson(code, x_list, color_data)
 	let geo_data = {
 		analysis_json: x_list,
-		//geo_json: geojson
+		geo_json: geojson
 	}
 	return geo_data
 }
 
 // d3渲染geojson
-const GetD3Geojson = function(data, type_data, color_data) {
+const GetD3Geojson = function(code, type_data, color_data) {
 	let v = type_data.map((item) => {
 		return item.data
 	})
 	let breaks = []
 	let colorData = color_data
 	colorData.some((lvlItem) => {
-		breaks.push(lvlItem.Value)
+		breaks.push(lvlItem.value)
 	})
 
 	breaks = breaks.reverse()
 
 	//breaks.push(999999);
-	let mx = data.StartLon //起始经度
-	let my = data.StartLat //起始纬度
-	let nx = data.XNum //横向个数
-	let ny = data.YNum //纵向个数
-	let zx = data.XReso
-	let zy = data.YReso
+	let mx = code.minLon //起始经度
+	let my = code.maxLat //起始纬度
+	let nx = code.latSpan //横向个数
+	let ny = code.lonSpan //纵向个数
+	let zx = code.reso
+	let zy = code.reso
 	let point = [mx, my]
 
 	let transform = ({
@@ -90,8 +90,8 @@ const GetD3Geojson = function(data, type_data, color_data) {
 
 	con.forEach(function(geometry) {
 		let color = colorData.filter((lvl) => {
-			return Number(lvl.Value) === Number(geometry.value)
-		})[0].Color
+			return Number(lvl.value) === Number(geometry.value)
+		})[0].strColor
 
 		if (geometry.coordinates.length > 0) {
 			let g = $turf.feature(geometry)

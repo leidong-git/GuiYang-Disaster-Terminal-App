@@ -15,6 +15,14 @@
 					"titleNView": false
 				}
 			}
+		}, {
+			"path": "pages/power/power",
+			"style": {
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+
 		}
 	],
 	"globalStyle": {

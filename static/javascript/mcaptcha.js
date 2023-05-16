@@ -61,8 +61,6 @@ export class Mcaptcha {
 	validate(code) {
 		var code = code.toLowerCase();
 		var v_code = this.options.createCodeImg.toLowerCase();
-		console.log(code)
-		console.log(v_code.substring(v_code.length - 4))
 		if (code == v_code.substring(v_code.length - 4)) {
 			return true;
 		} else {

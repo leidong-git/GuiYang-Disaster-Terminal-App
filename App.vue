@@ -1,6 +1,7 @@
 <script>
 	export default {
 		onLaunch: function() {
+			let that = this
 			// #ifndef H5
 			// 非H5平台
 			// 设置横屏方向
@@ -16,6 +17,45 @@
 					key: 'GYFZJZ_Code',
 					data: wgtinfo
 				})
+			})
+
+			let uuid = ''
+
+			// 获取设备信息
+			plus.device.getInfo({
+				success: function(e) {
+					uni.setStorage({
+						key: 'uuid',
+						data: e.uuid
+					})
+
+					// 判断当前设备有无权限
+					that.$http.post(
+							`/Api/AppAuthorization/GetAppAuthorization`, {
+								AuthorizationCode: e.uuid,
+								AppDescription: ''
+							}, 1)
+						.then(res => {
+							if (res.code !== 200) {
+								uni.navigateTo({
+									url: `/pages/power/power`
+								})
+							} else {
+								uni.navigateTo({
+									url: `/pages/login/login`
+								})
+							}
+						})
+
+						.catch(err => {
+							console.log(err);
+						})
+				},
+				fail: function(e) {
+					uni.showToast({
+						title: '获取设备唯一标识失败！'
+					})
+				}
 			})
 			//#endif 
 		},

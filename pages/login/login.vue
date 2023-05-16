@@ -36,7 +36,7 @@
 
 		<!-- #ifdef APP-PLUS -->
 		<!-- 更新进度 -->
-		<uni-popup ref="download" background-color="#fff" width="550px">
+		<uni-popup ref="download" background-color="#fff" width="550px" :is-mask-click="false">
 			<view class="popup-content">
 				<view class="dialog_title">
 					<view class="title_nr">
@@ -125,8 +125,9 @@
 								if (res.Status === 1) {
 									let appversion = res.Data.Version
 									var appUrl = res.Data.Url;
+
 									// 后端返回的app版本和当前app版本比较
-									if (appversion != _this.GYFZJZ_Code.version) {
+									if (appversion > _this.GYFZJZ_Code.version) {
 										uni.showModal({
 											title: "发现新版本",
 											content: "确认下载更新",
@@ -220,13 +221,13 @@
 						uni.showToast({
 							title: '登录成功！',
 						})
-
-						console.log(res);
-
 						this.$store.commit('Login', res.Data)
-
+						let admin = {
+							name: this.loginInfo.LoginName,
+							pwd: this.loginInfo.Password
+						}
+						this.$store.commit('GetAdmin', admin)
 						uni.hideToast()
-
 						// 跳转首页
 						uni.navigateTo({
 							url: `/pages/index/index`

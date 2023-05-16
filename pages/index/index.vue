@@ -1,5 +1,5 @@
 <template>
-	<view class="content">
+	<view class="content" @touchend="isDo()">
 		<view class="header">
 			<view class="header_time">{{header.time}}</view>
 			<image class="header_name" :src="`../../static/images/login/${header.icon}`"></image>
@@ -12,9 +12,11 @@
 				<view class="map" id="map"></view>
 
 				<view :address="address" :change:address="leaflet.InitAddress"></view>
+				<view :threshold="threshold" :change:threshold="leaflet.GetThreshold"></view>
 				<view :map_action_data="map_action_data" :change:map_action_data="leaflet.InitTypeMarker"></view>
 				<view :radar_data_list="radar_data_list" :change:radar_data_list="leaflet.InitRadar"></view>
 				<view :original_json="original_json" :change:original_json="leaflet.GetOriginal"></view>
+				<view :geo_json="geo_json" :change:geo_json="leaflet.GetColorPattern"></view>
 				<view :lattice_data="lattice_data" :change:lattice_data="leaflet.GetGridOpen"></view>
 
 
@@ -29,7 +31,8 @@
 				<!-- 预警 -->
 				<view class="map_warning" v-if="map_warning.length > 0 ">
 					<!-- <view class="map_warning_zw" v-if="map_warning.length == 0">暂无预警</view> -->
-					<view class="warning_list" @click="Warning_Detail(index)" v-for="(item,index) in map_warning">
+					<view class="warning_list" @click="Warning_Detail(index)" v-for="(item,index) in map_warning"
+						:key="index">
 						<image :src="`../../static/images/warning/${item.PinYin}.png`"></image>
 					</view>
 
@@ -63,15 +66,17 @@
 
 				<!-- 地图时间 -->
 				<div class="map_time">
-					<text v-show="map_time.radar.length > 0" v-for="item in map_time.radar">{{item}}</text>
-					<text v-show="map_time.type.length > 0" v-for="item in map_time.type">{{item}}</text>
+					<text v-show="map_time.radar.length > 0" v-for="(item,index) in map_time.radar"
+						:key="index">{{item}}</text>
+					<text v-show="map_time.type.length > 0" v-for="(item,index) in map_time.type"
+						:key="index">{{item}}</text>
 				</div>
 
 				<!-- 地图操作栏 -->
 				<view class="map_action">
 					<text class="action_nr_title">{{map_action_title}}</text>
 					<view class="action_nr">
-						<view class="action_item" v-for="(item,index) in map_action">
+						<view class="action_item" v-for="(item,index) in map_action" :key="index">
 							<view @click="Map_Action_Click(item,index)"
 								:class="`action_cont ${ map_action_active.type == item.type?'active':''}`">
 								<i :class="`iconfont ${item.icon}`"></i>
@@ -84,7 +89,7 @@
 
 					<text class="action_nr_title">{{map_prediction_title}}</text>
 					<view class="action_nr">
-						<view class="action_item" v-for="(item,index) in map_prediction">
+						<view class="action_item" v-for="(item,index) in map_prediction" :key="index">
 							<view @click="Map_Prediction_Click(item,index)"
 								:class="`action_cont ${ map_action_active.type == item.type?'active':''}`">
 								<i :class="`iconfont ${item.icon}`"></i>
@@ -126,12 +131,12 @@
 					<view class="rain_action_title">降雨</view>
 					<view class="slider_cont">
 						<view class="slider_tool">
-							<view class="tool_list" v-for="item in precData"></view>
+							<view class="tool_list" v-for="(item,index) in precData" :key="index"></view>
 						</view>
 						<slider min="0" :max="rain_action.max" :value="rain_action.value" @change="Slider_Change"
 							step="10"></slider>
 						<view class="slider_size">
-							<view class="tool_list" v-for="item in precData">
+							<view class="tool_list" v-for="(item,index) in precData" :key="index">
 								<text>{{item}}</text>
 							</view>
 						</view>
@@ -145,12 +150,12 @@
 					<view class="rain_action_title">{{map_action_active.name}}</view>
 					<view class="slider_cont">
 						<view class="slider_tool">
-							<view class="tool_list" v-for="item in prediction_action.list"></view>
+							<view class="tool_list" v-for="(item,index) in prediction_action.list" :key="index"></view>
 						</view>
 						<slider min="0" :max="prediction_action.max" :value="prediction_action.value"
 							@change="Pre_Slider_Change" step="10"></slider>
 						<view class="slider_size">
-							<view class="tool_list" v-for="item in prediction_action.list">
+							<view class="tool_list" v-for="(item,index) in prediction_action.list" :key="index">
 								<text>{{item}}</text>
 							</view>
 						</view>
@@ -164,12 +169,12 @@
 					<view class="rain_action_title">雷达</view>
 					<view class="slider_cont">
 						<view class="slider_tool">
-							<view class="tool_list" v-for="item in radar_data"></view>
+							<view class="tool_list" v-for="(item,index) in radar_data" :key="index"></view>
 						</view>
 						<slider min="0" :max="radar_action.max" :value="radar_action.value" @change="Radar_Change"
 							step="10"></slider>
 						<view class="slider_size">
-							<view class="tool_list" v-for="item in radar_data">
+							<view class="tool_list" v-for="(item,index) in radar_data" :key="index">
 								<text>{{item.Datetime | radar_time}}</text>
 							</view>
 						</view>
@@ -181,8 +186,8 @@
 				<view class="legend" v-if="legend_show">
 					<text class="legend_title">{{legend.name}}:{{legend.unit}}</text>
 					<view class="legend_nr">
-						<view class="legend_item" v-for="item in legend.list" :key="item.id">
-							<view class="color_item" :style="`background:${item.color}`"></view>
+						<view class="legend_item" v-for="(item,index) in legend.list" :key="item.id">
+							<view class="color_item" :style="`background:${item.strColor}`"></view>
 							<text class="size_item">{{item.value}}</text>
 						</view>
 					</view>
@@ -236,7 +241,7 @@
 							<view class="precul">
 								<view @tap="Prec_Change(index)"
 									:class="prec_active == index ? 'precli active':'precli' "
-									v-for="(item,index) in precData">
+									v-for="(item,index) in precData" :key="index">
 									{{item}}
 								</view>
 							</view>
@@ -255,7 +260,8 @@
 									</uni-tr>
 								</view>
 								<!-- 表格数据行 -->
-								<view class="table_body" ref="table_body">
+								<scroll-view :scroll-top="scrollTop" @scroll="scroll" scroll-y="true" class="table_body"
+									ref="table_body" :show-scrollbar="false">
 									<uni-tr v-for="(item, index) in tableData" :key="index">
 										<uni-td align="center">
 											<i>{{ index+1 }}</i>
@@ -265,7 +271,11 @@
 										<uni-td align="center">{{ item.Rain }}</uni-td>
 										<uni-td align="center">{{ item.StationCategory | getType}}</uni-td>
 									</uni-tr>
-								</view>
+									<view @click="Table_Loading()" class="table_loading"
+										v-if="tableData.length > 0 && tableData_total">
+										<text>加载更多</text>
+									</view>
+								</scroll-view>
 							</uni-table>
 						</view>
 					</view>
@@ -280,7 +290,7 @@
 						<view class="pre_weather" v-if="action_nav_index == 0">
 							<view class="pred_cont">
 								<view class="pred_ul">
-									<view class="pred_li" v-for="item in weather_pred">
+									<view class="pred_li" v-for="(item,index) in weather_pred" :key="index">
 										<text>{{item.date | getWeek}}</text>
 										<text>{{item.high}}℃</text>
 										<image :src="`../../static/images/weather/lan/${item.text_day}.png`">
@@ -316,6 +326,95 @@
 				</view>
 			</view>
 		</view>
+
+		<!-- #ifdef APP-PLUS -->
+		<!-- 更新进度 -->
+		<uni-popup ref="download" background-color="#fff" width="550px" :is-mask-click="false">
+			<view class="popup-content">
+				<view class="dialog_title">
+					<view class="title_nr">
+						<i class="iconfont icon-yunxiazai"></i>
+						<text>下载新版本</text>
+					</view>
+				</view>
+				<view class="dialog_nr">
+					<text>新版本下载中，请稍等</text>
+					<progress :percent="percent" font-size='24rpx' border-radius='44rpx' activeColor='#D52424' show-info
+						stroke-width="10"></progress>
+				</view>
+			</view>
+		</uni-popup>
+		<!-- #endif -->
+
+
+		<!-- 服务快到期 -->
+		<uni-popup ref="server_on_expire" background-color="#fff" width="550px">
+			<view class="popup-content">
+				<view class="dialog_title server_on_title">
+					<view class="server_nr">
+						<text>服务时长预到期提醒</text>
+					</view>
+				</view>
+				<view class="dialog_nr">
+					<view class="server_cont">
+						<view class="server_list">
+							<i>{{userInfo.CustomerName}}</i>
+							<text>，您的服务时长于</text>
+							<i>{{userInfo.ServerEndTime}}</i>
+							<text>到期，为避免影响气象数据查看及推送服务，请及时续费。</text>
+						</view>
+						<view class="server_list">
+							<view class="server_list_title">
+								<view class="xian"></view>
+								<text>联系方式</text>
+							</view>
+							<text>贵州云海气象科技服务有限责任公司</text></br>
+							<text>18546246057</text>
+						</view>
+						<view class="server_an">
+							<button class="refresh" type="default" @click="Close_Server()">确
+								定</button>
+						</view>
+					</view>
+
+				</view>
+			</view>
+		</uni-popup>
+
+
+
+		<!-- 服务到期 -->
+		<uni-popup ref="server_expire" background-color="#fff" width="550px" :is-mask-click="false">
+			<view class="popup-content">
+				<view class="dialog_title server_title">
+					<view class="server_nr">
+						<text>服务时长到期提醒</text>
+					</view>
+				</view>
+				<view class="dialog_nr">
+					<view class="server_cont">
+						<view class="server_list">
+							<i>{{userInfo.CustomerName}}</i>
+							<text>，您的服务时长于</text>
+							<i>{{userInfo.ServerEndTime}}</i>
+							<text>到期，为避免影响气象数据查看及推送服务，请及时续费。</text>
+						</view>
+						<view class="server_list">
+							<view class="server_list_title">
+								<view class="xian"></view>
+								<text>联系方式</text>
+							</view>
+							<text>贵州云海气象科技服务有限责任公司</text></br>
+							<text>18546246057</text>
+						</view>
+						<view class="server_an">
+							<button class="close" type="default" @click="Refresh_UserInfo()">已续费，刷新界面</button>
+						</view>
+					</view>
+				</view>
+			</view>
+		</uni-popup>
+
 	</view>
 </template>
 
@@ -323,10 +422,23 @@
 	import Weather from '@/static/javascript/wrather.js'
 	import warning from '@/static/javascript/warning.js'
 	import Filter from '@/static/javascript/filter.js'
+	import {
+		timeOut
+	} from '@/static/javascript/timeOut.js'
+	import {
+		contours
+	} from 'd3-contour'
+	// 草皮
+	import * as turf from '@turf/turf'
 	export default {
 		data() {
 			return {
+				// 下载设置
+				downLineShow: false,
+				percent: '',
+
 				userInfo: {},
+				admin: {},
 				header: {
 					time: '',
 					icon: 'login_name.png',
@@ -342,6 +454,10 @@
 				precData: ['1H', '3H', '6H', '12H', '24H', '48H', '72H'],
 				tableData: [],
 				tableDatacont: {},
+				tableDataIndex: 0,
+				tableData_total: true,
+				scrollTop: 0,
+				oldScrollTop: 0,
 				loading: false,
 
 				// 操作栏
@@ -461,6 +577,9 @@
 					max: 40,
 				},
 
+				// 阈值
+				threshold: [],
+
 				// 色标
 				legend_show: false,
 				legend: {
@@ -504,7 +623,19 @@
 				// 格点
 				lattice_data: [],
 				original_json: [],
+				geo_json: [],
 
+				// 时间记录
+				lastTime: null, //最后一次点击的时间
+				currentTime: null, //当前点击的时间
+				timeOut: 10 * 1000, //设置超时时间： 10分钟
+				navTime: null,
+				navList: [8, 16, 32, 64, 128, 256],
+
+				// 定时器
+				navTime: null,
+				menuTime: null,
+				tabTime: null
 			}
 		},
 		filters: {
@@ -591,15 +722,164 @@
 		components: {
 
 		},
-		onLoad() {
+		watch: {
+			// 监听无操作 后开启循环定时器
+			"$store.state.timeshow": {
+				deep: true, //深度监听设置为 true
+				handler: function(newVal, oldVal) {
+					if (newVal) {
+						console.log("超时了开启循环定时器")
+						this.$store.commit("TimeShow", false)
 
+						// 循环定时器
+						this.OpenTimeOut()
+						this.OpenNavTimeOut()
+						this.OpenTabTimeOut()
+					}
+				}
+			},
+
+			"userInfo": {
+				deep: true, //深度监听设置为 true
+				handler: function(newVal, oldVal) {
+					console.log('用户信息更新');
+					this.Determine_Data()
+				}
+			},
+		},
+		onShow() {
+			timeOut();
+		},
+		onLoad() {
+			this.lastTime = new Date().getTime();
 		},
 		onReady() {
-			this.userInfo = this.$store.state.user.userInfo
+			// #ifdef APP-PLUS
+			// 检查版本更新
+			this.getSysVersion()
+			// #endif
+			this.userInfo = this.$store.state.userInfo
+			this.admin = this.$store.state.admin
 			this.GetTime()
+			// 数据获取
 			this.GetInit()
+			this.$nextTick(() => {
+				this.Determine_Data()
+			})
 		},
 		methods: {
+
+			// #ifdef APP-PLUS
+			//更新最新版本
+			getSysVersion() {
+				const _this = this;
+				//获取缓存中，当前app的版本号
+				uni.getStorage({
+					key: 'GYFZJZ_Code',
+					success: (res) => {
+						_this.GYFZJZ_Code = res.data;
+						this.$http.get('/Admin/CustomerApp/UpdateVersion2/true')
+							.then(res => {
+								if (res.Status === 1) {
+									let appversion = res.Data.Version
+									var appUrl = res.Data.Url;
+
+									// 后端返回的app版本和当前app版本比较
+									if (appversion > _this.GYFZJZ_Code.version) {
+										uni.showModal({
+											title: "发现新版本",
+											content: "确认下载更新",
+											success: (res) => {
+												if (res.confirm ==
+													true) { //当用户确定更新，执行更新,下面方法进行下载app
+													_this.appdownLoad(appUrl);
+												} else {
+													return false
+												}
+											}
+										})
+									}
+								} else {
+									uni.showToast({
+										title: res.msg,
+										icon: 'error',
+									});
+								}
+							})
+					},
+				})
+			},
+
+			appdownLoad(url) {
+				const downloadTask = uni.downloadFile({
+					url: url, //仅为示例，并非真实的资源
+					success: (res) => {
+						uni.hideLoading()
+						if (res.statusCode === 200) {
+							let that = this;
+							uni.saveFile({
+								tempFilePath: res.tempFilePath,
+								success: function(red) {
+									uni.openDocument({
+										filePath: red.savedFilePath,
+										success: (sus) => {
+											uni.showToast({
+												title: '下载完成',
+											})
+										}
+									})
+								}
+							})
+						}
+					}
+				});
+
+				downloadTask.onProgressUpdate((res) => {
+					this.$refs.download.open('center')
+					this.percent = res.progress
+
+					// 满足测试条件，取消下载任务。
+					if (res.progress == 100) {
+						this.downLineShow = false
+					}
+				});
+			},
+			// #endif
+
+			// 服务时长判断
+			Determine_Data() {
+
+				//let endtime = new Date(this.userInfo.ServerEndTime).getTime() / 1000
+				let endtime = new Date(this.userInfo.ServerEndTime).getTime() / 1000
+				let time = new Date().getTime() / 1000
+				let serve = (endtime - time) < 7 * 24 * 60 * 60
+
+				if (endtime < time) {
+					this.$refs.server_expire.open('center')
+				} else if (endtime < time || serve) {
+					this.$refs.server_expire.close()
+					this.$refs.server_on_expire.open('center')
+				} else {
+					this.$refs.server_expire.close()
+				}
+			},
+
+			// 更新用户信息
+			Refresh_UserInfo() {
+				this.$http.get(
+						`/api/Customer/GetCustomer?LoginName=${this.admin.name}&Password=${this.admin.pwd}`
+					)
+					.then(res => {
+						this.$store.commit('Login', res.Data)
+						this.userInfo = res.Data
+					})
+			},
+
+			// 关闭提示
+			Close_Server() {
+				this.$refs.server_on_expire.close()
+			},
+
 			// 获取当前时间
 			GetTime() {
 				var dt = new Date()
@@ -625,13 +905,15 @@
 				this.GetPrecipitation()
 				this.GetSevenWeather()
 				this.Get_Current_Location()
+				this.GetThresholdData()
+				this.Init_Radar()
 				this.Marquee()
 				this.GetWarning()
 				this.Get_Action_Data(8, 1)
 
 				setTimeout(() => {
 					uni.hideLoading();
-				}, 3500)
+				}, 1000)
 			},
 
 			// 获取天气实况
@@ -670,7 +952,7 @@
 							this.tableDatacont[this.precData[index]] = item
 						})
 
-						this.tableData = this.tableDatacont[this.precData[this.prec_active]]
+						this.tableData = this.tableDatacont[this.precData[this.prec_active]].slice(0, 10)
 						// console.log(this.$refs.table_body);
 						// this.$refs.table_body.$el.offsetTop = 0
 					})
@@ -691,10 +973,31 @@
 
 			// 站点雨量菜单切换
 			Prec_Change(index) {
-				this.prec_active = index
-				this.tableData = this.tableDatacont[this.precData[this.prec_active]]
-				// this.$refs.table_body.$el.offsetTop = 100
-				// console.log(this.$refs.table_body.$el.offsetTop);
+				this.tableDataIndex = 0 //数据第一页
+				this.tableData_total = true //数据按钮加载显示
+				this.prec_active = index //当前索引
+				this.tableData = this.tableDatacont[this.precData[this.prec_active]].slice(0, 10)
+				this.scrollTop = this.oldScrollTop
+				this.$nextTick(() => {
+					this.scrollTop = 0
+				});
+			},
+
+			scroll(e) {
+				//记录scroll  位置
+				this.oldScrollTop = e.detail.scrollTop
+			},
+
+			// 加载更多
+			Table_Loading() {
+				this.tableDataIndex++
+				this.tableData = [...this.tableData, ...this.tableDatacont[this.precData[this.prec_active]].slice(this
+					.tableDataIndex * 10, (this
+						.tableDataIndex + 1) * 10)]
+				// 数据全部显示后隐藏加载按钮
+				if (this.tableData.length == this.tableDatacont[this.precData[this.prec_active]].length) {
+					this.tableData_total = false
+				}
 			},
 
 			// 获取7天天气预报
@@ -746,6 +1049,17 @@
 						that.address.push(res)
 					}
 				});
+			},
+
+			// 获取阈值
+			GetThresholdData() {
+				this.threshold = []
+				this.$http.get(
+						`/api/Customer/GetCustomerStationWarning?LoginName=${this.admin.name}&Password=${this.admin.pwd}`
+					)
+					.then(res => {
+						this.threshold.push(res.Data)
+					})
 			},
 
 			// 跑马灯
@@ -816,6 +1130,8 @@
 				this.prediction_action_show = false
 				this.rain_action_show = false
 				this.map_action_active = item
+				this.map_time.type = []
+				this.legend_show = false
 
 				if (item.type == 16) {
 					this.rain_action_show = true
@@ -934,8 +1250,12 @@
 			// 雷达显示
 			Radar_Action_Show() {
 				this.radar_action_show = !this.radar_action_show
+				this.map_time.radar = []
 				if (this.radar_action_show) {
-					this.Init_Radar();
+					this.radar_data_list.push(this.radar_data[this.radar_data.length - 1])
+					this.map_time.radar = []
+					let time = `${this.radar_data[this.radar_data.length - 1].Datetime} 雷达回播图`
+					this.map_time.radar.push(time)
 				} else {
 					this.radar_action_show = false;
 					clearInterval(this.radarInterval);
@@ -950,20 +1270,14 @@
 						`/api/Radar/GetRadar?num=${num}`
 					)
 					.then(res => {
-						if (res.data.length == 0) {
+						if (res.Data.length == 0) {
 							uni.showToast({
 								title: '暂无数据！',
 							})
-
 							this.radar_data_list = []
-
 							return false
 						}
 						this.radar_data = res.Data.reverse()
-						this.radar_data_list.push(this.radar_data[this.radar_data.length - 1])
-						this.map_time.radar = []
-						let time = `${this.radar_data[this.radar_data.length - 1].Datetime} 雷达回播图`
-						this.map_time.radar.push(time)
 					})
 			},
 
@@ -979,8 +1293,14 @@
 					this.radarInterval = setInterval(() => {
 						if (this.radar_action.value / 10 >= this.radar_data.length - 1) {
 							this.radar_action.value = 0
+
 						} else {
 							this.radar_action.value += 10;
+							if (this.radar_action.value == 40) {
+								// 销毁计时器
+								clearInterval(this.radarInterval);
+								this.radar_action_paly = false
+							}
 						}
 
 						let code = {
@@ -989,7 +1309,7 @@
 							}
 						}
 						this.Radar_Change(code)
-					}, 3500);
+					}, 5000);
 					this.radar_action_paly = true
 				}
 			},
@@ -1006,6 +1326,10 @@
 
 			// 格点数据
 			Get_Lattice_Point(code, index) {
+				uni.showLoading({
+					title: '叠加格点数据中',
+					mask: true,
+				});
 				this.$http.get(
 						`/Api/GridForecast/GetGridForecastData?TypeCode=${code}&ForecastIndex=${index}`, '', 1)
 					.then(res => {
@@ -1016,15 +1340,201 @@
 
 							this.original_json = []
 							this.lattice_data = []
-
+							this.geo_json = []
 							return false
 						}
 
+						this.map_time.type = []
+						this.legend = {
+							name: this.map_action_active.name,
+							unit: this.map_action_active.name == '温度' ? '℃' : 'mm',
+							list: res.data.gridColor
+						}
+						this.legend_show = true
+						let time = `${res.data.gridDataTime} ${index}H ${this.map_action_active.name}格点预报`
+						this.map_time.type.push(time)
 						this.original_json = JSON.parse(res.data.gridData)
-						Promise.all([Filter.GetLattice(this.original_json, res.data.gridDescription)]).then((res) => {
-							this.lattice_data = res[0].analysis_json
-						})
+						setTimeout(() => {
+							uni.hideLoading()
+						}, 2000)
+						this.GetLattice(this.original_json, res.data.gridDescription, res.data.gridColor)
 					})
+			},
+
+			//格点数据解析
+			GetLattice(data, code, color_data) {
+				let lon = code.minLon //起始经度
+				let lat = code.maxLat //起始纬度
+				let xNum = code.latSpan //横向个数
+				let yNum = code.lonSpan //纵向个数
+				let zx = code.reso
+				let zy = -code.reso
+				let x_list = []
+
+				let data1 = data
+
+				for (let i = 0; i < yNum; i++) {
+					for (let n = 0; n < xNum; n++) {
+						let list = {}
+						list.lon = (Number(lon) + (n * zx))
+						list.lat = (Number(lat) + (i * zy))
+						list.data = data1[i][n]
+						x_list.push(list)
+					}
+				}
+
+				this.lattice_data = x_list
+				this.GetD3Geojson(code, x_list, color_data)
+			},
+
+			// d3渲染geojson
+			GetD3Geojson(code, type_data, color_data) {
+				let v = type_data.map((item) => {
+					return item.data
+				})
+				let breaks = []
+				let colorData = color_data
+				colorData.some((lvlItem) => {
+					breaks.push(lvlItem.value)
+				})
+
+				breaks = breaks.reverse()
+
+				//breaks.push(999999);
+				let mx = code.minLon //起始经度
+				let my = code.maxLat //起始纬度
+				let nx = code.latSpan //横向个数
+				let ny = code.lonSpan //纵向个数
+				let zx = code.reso
+				let zy = code.reso
+				let point = [mx, my]
+
+				let transform = ({
+					type,
+					value,
+					coordinates
+				}) => {
+					return {
+						type,
+						value,
+						coordinates: coordinates.map(rings => {
+							return rings.map(points => {
+								return points.map(([x, y]) => ([
+									parseFloat(point[0]) + zx * x,
+									parseFloat(point[1]) - zy * y
+								]))
+							})
+						})
+					}
+				}
+
+				let con = contours()
+					.size([nx, ny])
+					.smooth(true)
+					.thresholds(breaks)(v)
+					.map(transform)
+
+				let fc = new Array()
+
+				con.forEach(function(geometry) {
+					let color = colorData.filter((lvl) => {
+						return Number(lvl.value) === Number(geometry.value)
+					})[0].strColor
+
+					if (geometry.coordinates.length > 0) {
+						let g = turf.feature(geometry)
+						g.properties = {
+							"type": "色斑图",
+							"fill": color,
+							"fill-opacity": "0.5",
+							"stroke": "#ddd",
+							"stroke-opacity": "0.5",
+							"stroke-width": "1"
+						}
+						fc.push(g)
+					}
+				})
+
+				this.geo_json = []
+				let geo = turf.featureCollection(fc)
+				this.geo_json.push({
+					...geo
+				})
+			},
+
+			// 鼠标操作后
+			isDo() {
+				console.log('用户触摸！！');
+				this.$store.commit('lastTimeUpdata', new Date().getTime())
+				clearInterval(this.navTime)
+				clearInterval(this.menuTime)
+				clearInterval(this.tabTime)
+
+				// console.log(this.navTime);
+				// console.log(this.menuTime);
+				// console.log(this.tabTime);
+				timeOut()
+			},
+
+			// 循环定时器
+			OpenTimeOut() {
+				let index = 0
+				this.navTime = setInterval(() => {
+					if (index < 5) {
+						index = index + 1
+						if (index < 4) {
+							this.Map_Action_Click(this.map_action[index], index)
+						} else {
+							this.Map_Prediction_Click(this.map_prediction[index - 4], index - 4)
+						}
+					} else {
+						index = 0
+						this.Map_Action_Click(this.map_action[index], index)
+						clearInterval(this.navTime)
+						this.OpenTimeRdar()
+					}
+				}, 8000)
+			},
+
+			// 打开雷达自动播放
+			OpenTimeRdar() {
+				this.Radar_Action_Show()
+				this.Radar_Play()
+
+				// 雷达播放完毕 播放循环定时器
+				let xunhuan = setTimeout(() => {
+					this.radar_action_show = !this.radar_action_show
+					this.map_time.radar = []
+					this.radar_data_list = []
+					this.OpenTimeOut()
+				}, 30000)
+			},
+
+			// 菜单播放
+			OpenNavTimeOut() {
+				let index1 = 0
+				this.menuTime = setInterval(() => {
+					if (index1 < 6) {
+						index1 = index1 + 1
+						this.Prec_Change(index1)
+					} else {
+						index1 = 0
+						this.Prec_Change(index1)
+					}
+				}, 7000)
+			},
+			// 菜单播放
+			OpenTabTimeOut() {
+				let index2 = 0
+				this.tabTime = setInterval(() => {
+					if (index2 < 1) {
+						index2 = index2 + 1
+						this.action_nav_index = index2
+					} else {
+						index2 = 0
+						this.action_nav_index = index2
+					}
+				}, 10000)
 			}
 		},
 	}
@@ -1033,6 +1543,10 @@
 <script module="leaflet" lang="renderjs">
 	import 'leaflet/dist/leaflet.css'
 	import L from 'leaflet'
+	// 草皮
+	import * as turf from '@turf/turf'
+	// 裁剪
+	import '@/static/javascript/L.clipGeojson.js'
 	import('leaflet-canvas-marker-xrr2021')
 	import Data from "../index/modules/data.json"
 	let tileUrl = {
@@ -1052,6 +1566,30 @@
 				GisLayerLoaded: [], //地图图层管理
 				GisLayerPane: [], //地图图层对象
 				GisMap: null,
+
+				Threshold: {
+					"Tem": [
+
+					],
+					"Rain1": [
+
+					],
+					"Rain3": [
+
+					],
+					"Rain6": [
+
+					],
+					"WindLv6": [
+
+					],
+					"WindLv7": [
+
+					],
+					"WindLv9": [
+
+					]
+				},
 			};
 		},
 		components: {},
@@ -1082,7 +1620,7 @@
 				let that = this
 				this.GisMap.on("zoomend", function(e) {
 					var u = e.target.getZoom() // 获取当前地图缩放等级的变量
-					if (u >= 9) {
+					if (u >= 10) {
 						that.GisMap.getPane("网格值").style.display = "inline"
 					} else {
 						that.GisMap.getPane("网格值").style.display = "none"
@@ -1116,6 +1654,7 @@
 					"雷达图",
 					"网格值",
 					"定位",
+					"色斑图",
 					"县名",
 					"县边界",
 					"市名",
@@ -1219,30 +1758,36 @@
 				if (this.HasLayer("地图要素")) {
 					this.RemoveLayer("地图要素")
 				}
+				if (this.HasLayer("网格值")) {
+					this.RemoveLayer("网格值")
+				}
+				if (this.HasLayer("色斑图")) {
+					this.RemoveLayer("色斑图")
+				}
 				if (newValue.length == 0) return false
 				let data = newValue
 				let BoundaryName = new Array()
 				BoundaryName.name = "地图要素"
 				BoundaryName.Layers = new L.layerGroup()
 
-				let classNmae = ''
+				let className = ''
 				let unit = ''
 				let html = ``
 				switch (data[0].map_type) {
 					case 8:
-						classNmae = 'map_wd'
+						className = 'map_lv'
 						unit = '℃'
 						break;
 					case 16:
-						classNmae = 'map_jy'
+						className = 'map_lv'
 						unit = 'mm'
 						break;
 					case 32:
-						classNmae = 'map_sd'
+						className = 'map_lv'
 						unit = '%'
 						break;
 					case 64:
-						classNmae = 'map_fs'
+						className = 'map_lv'
 						unit = 'm/s'
 						break;
 					default:
@@ -1250,13 +1795,14 @@
 				}
 
 				for (var i = 0; i < data.length; i++) {
+					className = this.InitThreshold(data[i].map_type, data[i].Id)
 					if (data[0].map_type == 16) {
-						html = `<div class="map_station ${classNmae}">
+						html = `<div class="map_station ${className}">
 							<span>${data[i].RainSum}</span>
 							<i>${unit}</i>
 						</div>`
 					} else {
-						html = `<div class="map_station ${classNmae}">
+						html = `<div class="map_station ${className}">
 							<span>${data[i].Value}</span>
 							<i>${unit}</i>
 						</div>`
@@ -1276,6 +1822,56 @@
 
 				this.GisMap.addLayer(BoundaryName.Layers)
 				this.GisLayerPane.push(BoundaryName)
+			},
+
+			// 接受阈值
+			GetThreshold(newValue, oldValue, ownerInstance, instance) {
+				if (newValue.length == 0) return false
+				this.Threshold = newValue[0]
+			},
+
+			// 判断阈值
+			InitThreshold(type, id) {
+				let color = ''
+				switch (type) {
+					case 8:
+						if (this.Threshold.Tem.findIndex(item => item.StationId === id) != -1) {
+							color = 'map_hong'
+						} else {
+							color = 'map_lv'
+						}
+						break;
+					case 16:
+						if (this.Threshold.Rain1.findIndex(item => item.StationId === id) != -1) {
+							color = 'map_lan'
+							if (this.Threshold.Rain3.findIndex(item => item.StationId === id) != -1) {
+								color = 'map_cheng'
+								if (this.Threshold.Rain6.findIndex(item => item.StationId === id) != -1) {
+									color = 'map_hong'
+								}
+							}
+						} else {
+							color = 'map_lv'
+						}
+						break;
+					case 64:
+						if (this.Threshold.WindLv6.findIndex(item => item.StationId === id) != -1) {
+							color = 'map_lan'
+							if (this.Threshold.WindLv7.findIndex(item => item.StationId === id) != -1) {
+								color = 'map_cheng'
+								if (this.Threshold.WindLv9.findIndex(item => item.StationId === id) != -1) {
+									color = 'map_hong'
+								}
+							}
+						} else {
+							color = 'map_lv'
+						}
+						break;
+					default:
+						color = 'map_lv'
+						break;
+				}
+				return color
 			},
 
 			// 叠加雷达
@@ -1313,13 +1909,13 @@
 
 			// 叠加网格
 			GetGridOpen(newValue, oldValue, ownerInstance, instance) {
-
 				if (this.HasLayer("网格值")) {
 					this.RemoveLayer("网格值")
 				}
 				if (this.HasLayer("地图要素")) {
 					this.RemoveLayer("地图要素")
 				}
+
 				if (newValue.length == 0) return false
 				let GridName = new Array()
 				GridName.name = "网格值"
@@ -1337,9 +1933,9 @@
 						iconAnchor: [0, 0],
 						text: data[i].data.toFixed(1),
 						textAnchor: [-5, -5],
-						textFont: "bold 13px '微软雅黑'", //设置字体大小和样式
+						textFont: "13px '微软雅黑'", //设置字体大小和样式
 						textFillStyle: "#000000", //设置字体颜色
-						strokeStyle: "#444444",
+						strokeStyle: "#fff",
 					})
 					var marker = L.marker([data[i].lat, data[i].lon], {
 						icon: iconName,
@@ -1352,6 +1948,39 @@
 				this.GisLayerPane.push(GridName)
 				this.GisMap.setZoom(this.GisMap.getZoom() + 0.01)
 			},
+
+			// 叠加色斑图
+			GetColorPattern(newValue, oldValue, ownerInstance, instance) {
+				if (this.HasLayer("色斑图")) {
+					this.RemoveLayer("色斑图")
+				}
+				if (newValue.length == 0) return false
+				console.log(newValue[0]);
+				let geo = newValue[0]
+				let clipCoords = turf.getCoords(Data.features[0])
+				let mapLayer_geo = new Array()
+				mapLayer_geo.name = "色斑图"
+				mapLayer_geo.Layers = new L.layerGroup()
+
+				let geojsonInMap = L.clipGeoJSON(geo, clipCoords, {
+					interactive: false,
+					pane: '色斑图',
+					style: function(feature) {
+						return {
+							stroke: true,
+							weight: feature.properties["stroke-width"],
+							color: feature.properties.stroke,
+							opacity: feature.properties["stroke-opacity"],
+							fillColor: feature.properties.fill,
+							fillOpacity: feature.properties["fill-opacity"]
+						}
+					}
+				})
+
+				mapLayer_geo.Layers.addLayer(geojsonInMap)
+				this.GisMap.addLayer(mapLayer_geo.Layers)
+				this.GisLayerPane.push(mapLayer_geo)
+			}
 		}
 	};
 </script>

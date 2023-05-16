@@ -277,11 +277,25 @@
 	height: calc(100% - 16rpx);
 	overflow-y: auto;
 	margin-top: 16rpx;
+	display: block;
 }
 
 .table_body::-webkit-scrollbar {
-	display: none
+	display: none !important;
+	width: 0;
+	height: 0;
+	color: transparent;
 }
+
+/* #ifdef APP-PLUS */
+.table_body::-webkit-scrollbar {
+	display: none !important;
+	width: 0;
+	height: 0;
+	color: transparent;
+}
+
+/* #endif */
 
 .table--stripe .uni-table-tr {
 	background: transparent;
@@ -304,6 +318,26 @@
 	height: 100%;
 	overflow: hidden;
 	min-width: 100% !important;
+}
+
+.table_loading {
+	width: 100%;
+	height: 15rpx;
+	margin: 5rpx 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	float: left;
+}
+
+.table_loading text {
+	background-image: linear-gradient(to right, #30DAFF, #00A8FF);
+	padding: 0 10rpx;
+	height: 15rpx;
+	line-height: 15rpx;
+	border-radius: 5px;
+	font-size: 8rpx;
+	color: #fff;
 }
 
 >>>.uni-table-loading {
@@ -491,6 +525,7 @@
 	margin: 0 auto;
 }
 
+
 >>>.pred_ul .pred_li text {
 	width: 100%;
 	height: 30rpx;
@@ -519,6 +554,14 @@
 	border-radius: 10px;
 	left: 0;
 }
+
+/* #ifdef H5 */
+>>>.pred_ul .pred_li .uni-image img {
+	width: 100%;
+	height: auto;
+}
+
+/* #endif */
 
 /* 滚动播报 */
 .pre_roll {
@@ -741,8 +784,8 @@
 	width: 30rpx;
 	height: 30rpx;
 	position: absolute;
-	bottom: 30rpx;
-	left: 25rpx;
+	bottom: 130rpx;
+	right: 15rpx;
 	background: rgba(255, 255, 255, 0.92);
 	border-radius: 4rpx;
 	box-shadow: 0 0 5px 2px rgba(0, 72, 255, 0.12);
@@ -1148,7 +1191,7 @@ uni-slider>>>.uni-slider-disabled .uni-slider-thumb {
 
 .legend_nr .legend_item {
 	width: 100%;
-	height: 16rpx;
+	height: 9rpx;
 	display: flex;
 	align-items: center;
 	justify-items: space-between;
@@ -1162,12 +1205,13 @@ uni-slider>>>.uni-slider-disabled .uni-slider-thumb {
 
 .legend_nr .legend_item .color_item {
 	width: 15rpx;
-	height: 11rpx;
+	height: 8rpx;
 	border: 1px solid rgba(0, 0, 0, 0.5);
 	display: inline-block;
 	float: left;
 	box-sizing: border-box;
 	border-radius: 2px;
+	opacity: 0.8;
 }
 
 .legend_nr .legend_item .size_item {
@@ -1177,23 +1221,23 @@ uni-slider>>>.uni-slider-disabled .uni-slider-thumb {
 }
 
 /* 地图 */
->>>.map_wd {
-	background: url('../../static/images/index/map_wd.png') no-repeat;
+>>>.map_lv {
+	background: url('../../static/images/index/map_lv.png') no-repeat;
 	background-size: 100% 100%;
 }
 
->>>.map_jy {
-	background: url('../../static/images/index/map_jy.png') no-repeat;
+>>>.map_lan {
+	background: url('../../static/images/index/map_lan.png') no-repeat;
 	background-size: 100% 100%;
 }
 
->>>.map_sd {
-	background: url('../../static/images/index/map_sd.png') no-repeat;
+>>>.map_cheng {
+	background: url('../../static/images/index/map_cheng.png') no-repeat;
 	background-size: 100% 100%;
 }
 
->>>.map_fs {
-	background: url('../../static/images/index/map_fs.png') no-repeat;
+>>>.map_hong {
+	background: url('../../static/images/index/map_hong.png') no-repeat;
 	background-size: 100% 100%;
 }
 
@@ -1207,7 +1251,7 @@ uni-slider>>>.uni-slider-disabled .uni-slider-thumb {
 }
 
 >>>.map_address i {
-	font-size: 25rpx;
+	font-size: 15rpx;
 	color: #f00;
 }
 
@@ -1240,4 +1284,28 @@ uni-slider>>>.uni-slider-disabled .uni-slider-thumb {
 	height: auto;
 	display: block;
 	text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
+}
+
+/deep/.uni-popup .uni-popup__wrapper {
+	width: 300rpx !important;
+	height: auto;
+	border-radius: 5px;
+	border: 1px solid #fff;
+	box-shadow: 0 0 10px 5px rgba(47, 186, 238, 0.2);
+}
+
+.uni-progress {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+/deep/.uni-progress-bar {
+	width: 85%;
+	border-radius: 5px
+}
+
+/deep/.uni-progress-inner-bar {
+	background-color: #00a8ff !important;
+	border-radius: 5px
 }

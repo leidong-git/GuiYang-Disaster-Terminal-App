@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@turf/turf": "^6.5.0",
+    "d3-contour": "^4.0.2",
     "element-ui": "^2.15.13",
     "leaflet": "^1.9.3",
     "leaflet-canvas-marker-xrr2021": "^1.0.2"
