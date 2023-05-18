@@ -8,17 +8,18 @@
 				<text class="text_detail">如需授权请联系</text>
 				<image src="../../static/images/power/jt.png" />
 				<view class="contact_cont">
-					<text class="contact_cont_name">重庆兰屿天臣科技有限公司</text>
+					<text class="contact_cont_name">贵阳市气象局</text>
 					<view class="phone">
 						<image class="phone_img" src="../../static/images/power/phone.png" />
-						<text>18996383720</text>
+						<text>0851-85615733</text>
 					</view>
 				</view>
 			</view>
 
 			<view class="power_form">
 				<view class="power_form_button">
-					<button type="default" @click="Empower()">申请授权</button>
+					<button v-if="!refresh" type="default" @click="Empower()">申请授权</button>
+					<button v-if="refresh" type="default" @click="Refresh()">已申请，刷新App</button>
 				</view>
 				<view class="power_form_input">
 					<view class="title">申请备注</view>
@@ -37,36 +38,61 @@
 					uuid: '',
 					detail: '',
 					name: '贵阳市防灾减灾智慧终端'
-				}
+				},
+
+				refresh: false,
 			}
 		},
 		onReady() {
-			let that = this
 			// 获取设备id
-			plus.device.getInfo({
-				success: function(e) {
-					that.empower.uuid = e.uuid
-				},
-			})
+			this.empower.mac = uni.getStorageSync('mac');
 		},
 		methods: {
 			// 申请授权
 			Empower() {
 				this.$http.post(
 						`/Api/AppAuthorization/SaveAppAuthorization`, {
-							AuthorizationCode: this.empower.uuid,
+							AuthorizationCode: this.empower.mac,
 							AppDescription: this.empower.name,
 							Remark: this.empower.detail
 						}, 1)
 					.then(res => {
-						if (res.code !== 200) {
+						if (res.code == 200) {
+							this.refresh = true
 							uni.showToast({
-								title: "申请成功，请等待审核人员审核，在重启App"
+								title: "申请成功!"
 							})
 						} else {
+							this.refresh = true
 							uni.showToast({
 								title: res.msg
 							})
+						}
+					})
+			},
+
+			//刷新App
+			Refresh() {
+				this.$http.post(
+						`/Api/AppAuthorization/GetAppAuthorization`, {
+							AuthorizationCode: this.empower.mac,
+							AppDescription: ''
+						}, 1)
+					.then(res => {
+						if (res.code === 200) {
+							if (res.data) {
+								uni.reLaunch({
+									url: `/pages/login/login`,
+									success: () => {
+
+									}
+								})
+							} else {
+								uni.showToast({
+									icon: 'error',
+									title: "审核未通过！！"
+								})
+							}
 						}
 					})
 

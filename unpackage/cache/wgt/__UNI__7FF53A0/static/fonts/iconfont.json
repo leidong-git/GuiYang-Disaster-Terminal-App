@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "947139",
+      "name": "警告",
+      "font_class": "jinggao",
+      "unicode": "e6aa",
+      "unicode_decimal": 59050
+    },
+    {
       "icon_id": "1211",
       "name": "云下载",
       "font_class": "yunxiazai",

@@ -863,8 +863,8 @@
 	width: 30rpx;
 	height: 30rpx;
 	position: absolute;
-	bottom: 130rpx;
-	right: 15rpx;
+	bottom: 70rpx;
+	right: 75rpx;
 	background: rgba(255, 255, 255, 0.92);
 	border-radius: 4rpx;
 	box-shadow: 0 0 5px 2px rgba(0, 72, 255, 0.12);
@@ -886,6 +886,33 @@
 }
 
 .rader_operate .iconfont {
+	font-size: 16rpx;
+	background-image: linear-gradient(to bottom, #30DAFF, #00A8FF);
+	-webkit-background-clip: text;
+	color: transparent;
+	-webkit-text-fill-color: transparent;
+	text-fill-color: transparent;
+}
+
+.reset_operate {
+	width: 30rpx;
+	height: 30rpx;
+	position: absolute;
+	bottom: 70rpx;
+	right: 120rpx;
+	background: rgba(255, 255, 255, 0.92);
+	border-radius: 4rpx;
+	box-shadow: 0 0 5px 2px rgba(0, 72, 255, 0.12);
+	z-index: 998;
+	padding: 5rpx;
+	box-sizing: border-box;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 50px;
+}
+
+.reset_operate .iconfont {
 	font-size: 16rpx;
 	background-image: linear-gradient(to bottom, #30DAFF, #00A8FF);
 	-webkit-background-clip: text;
@@ -1043,11 +1070,11 @@
 }
 
 .map_cont .radar_action {
-	width: auto;
+	width: 190rpx;
 	position: absolute;
 	height: 40rpx;
 	bottom: 15rpx;
-	right: 115rpx;
+	right: 75rpx;
 	background: rgba(255, 255, 255, 0.92);
 	border-radius: 4rpx;
 	box-shadow: 0 0 5px 2px rgba(0, 72, 255, 0.12);
@@ -1233,6 +1260,19 @@ uni-slider>>>.uni-slider-disabled .uni-slider-track {
 uni-slider>>>.uni-slider-disabled .uni-slider-thumb {
 	background-color: #fff;
 	border-color: #ccc
+}
+
+>>>.county_name {
+	width: auto;
+	height: 12rpx;
+	font-size: 9rpx;
+	color: #434343;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transform: translate(-50%, -50%);
+	white-space: nowrap;
+	font-weight: 600;
 }
 
 .legend {

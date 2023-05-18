@@ -15,40 +15,80 @@
 			plus.runtime.getProperty(plus.runtime.appid, (wgtinfo) => {
 				uni.setStorage({
 					key: 'GYFZJZ_Code',
-					data: wgtinfo
+					data: wgtinfo,
 				})
 			})
 
-			let uuid = ''
+			// 获取Ma地址保存设备唯一标识
+			const net = plus.android.importClass('java.net.NetworkInterface');
+			// 搜索具有指定名称的网络接口
+			const wlan0 = net.getByName('wlan0');
+			// 获得网卡的硬件地址
+			const macByte = wlan0.getHardwareAddress();
+			let mac = '';
+			//转换MAC地址的思路来自网上(https://blog.csdn.net/zhangzhen53377562/article/details/109183891)
+			macByte.forEach(item => {
+				// .toString(16)数字以十六进制值显示
+				let temp = '';
+				if (item < 0) temp = (256 + item).toString(16);
+				else temp = item.toString(16);
+				if (temp.length == 1) temp = `0${temp}`;
+				mac += temp;
+			});
+			mac = mac.toUpperCase();
+			let mac2 = mac;
+			for (let i = 2; i < mac2.length; i += 3) mac2 = mac2.slice(0, i) + ':' + mac2.slice(i);
+			// console.log(net);
+			// console.log(wlan0);
+			// console.log(macByte);
+			// console.log(mac2);
 
 			// 获取设备信息
-			plus.device.getInfo({
+			uni.getSystemInfo({
 				success: function(e) {
 					uni.setStorage({
-						key: 'uuid',
-						data: e.uuid
+						key: 'mac',
+						data: mac2
 					})
 
 					// 判断当前设备有无权限
 					that.$http.post(
 							`/Api/AppAuthorization/GetAppAuthorization`, {
-								AuthorizationCode: e.uuid,
+								AuthorizationCode: mac2,
 								AppDescription: ''
 							}, 1)
 						.then(res => {
-							if (res.code !== 200) {
-								uni.navigateTo({
-									url: `/pages/power/power`
-								})
+							if (res.code === 200) {
+								plus.navigator.closeSplashscreen();
+								if (res.data) {
+									uni.reLaunch({
+										url: `/pages/login/login`,
+										success: () => {
+											plus.navigator.closeSplashscreen();
+										}
+									})
+								} else {
+									uni.reLaunch({
+										url: `/pages/power/power`,
+										success: () => {
+											plus.navigator.closeSplashscreen();
+										}
+									})
+								}
 							} else {
-								uni.navigateTo({
-									url: `/pages/login/login`
+								uni.reLaunch({
+									url: `/pages/power/power`,
+									success: () => {
+										plus.navigator.closeSplashscreen();
+									}
 								})
 							}
 						})
 
 						.catch(err => {
-							console.log(err);
+							uni.showToast({
+								title: err
+							})
 						})
 				},
 				fail: function(e) {

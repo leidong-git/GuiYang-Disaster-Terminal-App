@@ -11,6 +11,7 @@
 				<!-- 地图 -->
 				<view class="map" id="map"></view>
 
+				<view :addressR="addressR" :change:addressR="leaflet.Init_Reset"></view>
 				<view :address="address" :change:address="leaflet.InitAddress"></view>
 				<view :threshold="threshold" :change:threshold="leaflet.GetThreshold"></view>
 				<view :map_action_data="map_action_data" :change:map_action_data="leaflet.InitTypeMarker"></view>
@@ -18,6 +19,7 @@
 				<view :original_json="original_json" :change:original_json="leaflet.GetOriginal"></view>
 				<view :geo_json="geo_json" :change:geo_json="leaflet.GetColorPattern"></view>
 				<view :lattice_data="lattice_data" :change:lattice_data="leaflet.GetGridOpen"></view>
+
 
 
 				<!-- 滚动播报 -->
@@ -124,6 +126,11 @@
 				<!-- 雷达按钮 -->
 				<view @click="Radar_Action_Show()" :class="`rader_operate ${radar_action_show ? 'active':''}`">
 					<i class="iconfont icon-satellite-signal-full"></i>
+				</view>
+
+				<!-- 雷达按钮 -->
+				<view @click="Reset_Action()" class="reset_operate">
+					<i class="iconfont icon-a-dingwei2"></i>
 				</view>
 
 				<!-- 降雨滑块 -->
@@ -484,6 +491,7 @@
 				},
 
 				address: [],
+				addressR: [],
 
 				// 地图
 				map: null,
@@ -565,7 +573,8 @@
 				prediction_action: {
 					value: 0,
 					max: 70,
-					list: ['3H', '6H', '9H', '12H', '15H', '18H', '21H', '24H']
+					list: ['3H', '6H', '9H', '12H', '15H', '18H', '21H', '24H'],
+					listname: [],
 				},
 
 				radar_action_show: false,
@@ -732,6 +741,10 @@
 						this.$store.commit("TimeShow", false)
 
 						// 循环定时器
+						this.addressR = this.address
+						setTimeout(() => {
+							this.addressR = []
+						}, 100)
 						this.OpenTimeOut()
 						this.OpenNavTimeOut()
 						this.OpenTabTimeOut()
@@ -778,7 +791,7 @@
 					key: 'GYFZJZ_Code',
 					success: (res) => {
 						_this.GYFZJZ_Code = res.data;
-						this.$http.get('/Admin/CustomerApp/UpdateVersion2/true')
+						this.$http.get('/Admin/CustomerApp/UpdateVersion/true')
 							.then(res => {
 								if (res.Status === 1) {
 									let appversion = res.Data.Version
@@ -911,9 +924,46 @@
 				this.GetWarning()
 				this.Get_Action_Data(8, 1)
 
+				this.RefreshUrl()
+				this.RefreshData()
+
 				setTimeout(() => {
 					uni.hideLoading();
 				}, 1000)
+			},
+
+			//一小时刷新界面
+			RefreshUrl() {
+				this.refreshurl = setTimeout(() => {
+					uni.showToast({
+						title: '定时刷新',
+						duration: 2000
+					})
+
+					clearInterval(this.navTime)
+					clearInterval(this.menuTime)
+					clearInterval(this.tabTime)
+					clearTimeout(this.refreshurl)
+					clearInterval(this.setInterval)
+
+					uni.redirectTo({
+						url: `/pages/index/index`
+					})
+					clearTimeout(this.refreshurl)
+				}, 1000 * 60 * 60)
+			},
+
+			// 10分钟刷新数据
+			RefreshData() {
+				this.refreshdata = setInterval(() => {
+					this.GetActually()
+					this.GetPrecipitation()
+					this.GetSevenWeather()
+					this.GetThresholdData()
+					this.Init_Radar()
+					this.Marquee()
+					this.GetWarning()
+				}, 1000 * 60 * 10)
 			},
 
 			// 获取天气实况
@@ -1051,6 +1101,14 @@
 				});
 			},
 
+			// 回位
+			Reset_Action() {
+				this.addressR = this.address
+				setTimeout(() => {
+					this.addressR = []
+				}, 100)
+			},
+
 			// 获取阈值
 			GetThresholdData() {
 				this.threshold = []
@@ -1142,32 +1200,30 @@
 			},
 
 			// 获取操作栏点击数据
-			Get_Action_Data(type, hour) {
+			async Get_Action_Data(type, hour) {
 				let stations = this.userInfo.Stations.join(",")
-				this.$http.get(
-						`/api/Customer/GetStationByFactor?factor=${type}&stations=${stations}&hour=${hour}`
-					)
-					.then(res => {
-						let data = []
-						if (this.map_action_active.type == 16) {
-							data = res.Data.filter(item => {
-								if (item.RainSum > 0) {
-									item.RainSum = (item.RainSum).toFixed(1);
-									item.map_type = this.map_action_active.type
-									return item
-								}
-							})
-						} else {
-							data = res.Data.filter(item => {
-								if (item.Value > 0) {
-									item.map_type = this.map_action_active.type
-									return item
-								}
-							})
+				let res = await this.$http.get(
+					`/api/Customer/GetStationByFactor?factor=${type}&stations=${stations}&hour=${hour}`
+				)
+				let data = []
+				if (this.map_action_active.type == 16) {
+					data = res.Data.filter(item => {
+						if (item.RainSum > 0) {
+							item.RainSum = (item.RainSum).toFixed(1);
+							item.map_type = this.map_action_active.type
+							return item
 						}
-
-						this.map_action_data = [...data]
 					})
+				} else {
+					data = res.Data.filter(item => {
+						if (item.Value > 0) {
+							item.map_type = this.map_action_active.type
+							return item
+						}
+					})
+				}
+
+				this.map_action_data = [...data]
 			},
 
 			// 降雨滑块
@@ -1209,15 +1265,13 @@
 			Map_Prediction_Click(item, index) {
 				this.rain_action_show = false
 				this.map_action_active = item
-				this.prediction_action_show = true
-				this.Get_Lattice_Point(item.code, 3)
+				this.Get_Lattice_List(item.code, 0)
 			},
 
 			// 预报滑块
 			Pre_Slider_Change(e) {
 				let index = (e.detail.value / 10)
-				let hour = this.prediction_action.list[index].replace("H", '')
-				this.Get_Lattice_Point(this.map_action_active.code, hour)
+				this.Get_Lattice_List(this.map_action_active.code, index)
 			},
 
 			// 预报滑块自动播放
@@ -1324,6 +1378,18 @@
 				this.map_time.radar.push(time)
 			},
 
+			//获取格点进度条
+			Get_Lattice_List(code, index) {
+				this.$http.get(
+						`/Api/GridForecast/GetGridForecastIndx?TypeCode=${code}`, '', 1)
+					.then(res => {
+						this.prediction_action_show = true
+						this.prediction_action.listname = res.data.map(item => item.forecastIndx)
+						this.prediction_action.list = res.data.map(item => item.forecastIndxName)
+						this.Get_Lattice_Point(code, this.prediction_action.listname[index])
+					})
+			},
+
 			// 格点数据
 			Get_Lattice_Point(code, index) {
 				uni.showLoading({
@@ -1351,12 +1417,12 @@
 							list: res.data.gridColor
 						}
 						this.legend_show = true
-						let time = `${res.data.gridDataTime} ${index}H ${this.map_action_active.name}格点预报`
+						let time = `${res.data.gridDataTime} ${this.map_action_active.name}格点预报`
 						this.map_time.type.push(time)
 						this.original_json = JSON.parse(res.data.gridData)
 						setTimeout(() => {
 							uni.hideLoading()
-						}, 2000)
+						}, 1000)
 						this.GetLattice(this.original_json, res.data.gridDescription, res.data.gridColor)
 					})
 			},
@@ -1446,7 +1512,7 @@
 						g.properties = {
 							"type": "色斑图",
 							"fill": color,
-							"fill-opacity": "0.5",
+							"fill-opacity": "0.8",
 							"stroke": "#ddd",
 							"stroke-opacity": "0.5",
 							"stroke-width": "1"
@@ -1549,6 +1615,7 @@
 	import '@/static/javascript/L.clipGeojson.js'
 	import('leaflet-canvas-marker-xrr2021')
 	import Data from "../index/modules/data.json"
+	import Data1 from "../index/modules/data_all.json"
 	let tileUrl = {
 		//wxt: 'http://t0.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=2b099c9887b09b91afa10d392031f842',
 		//wxt: "http://172.18.73.118:8001/Engine/tiles/wx/{z}/{x}/{y}.png",
@@ -1598,6 +1665,7 @@
 			this.InitMap()
 			this.InitMapPanel()
 			this.InitTiles()
+			this.InitFatherBoundary1(Data1, "市边界")
 			this.InitFatherBoundary(Data, "县边界")
 		},
 		computed: {},
@@ -1654,9 +1722,10 @@
 					"雷达图",
 					"网格值",
 					"定位",
-					"色斑图",
 					"县名",
 					"县边界",
+					"市边界",
+					"色斑图",
 					"市名",
 					"地图标注",
 					"地图瓦片",
@@ -1688,21 +1757,114 @@
 				FatherInner.name = name
 				FatherInner.Layers = new L.layerGroup()
 				this.AddGeoBoundary(innerGeojsonData, FatherInner, {
-					color: "#fff771", //线颜色
-					opacity: 1, //线透明度
+					color: "#434343", //线颜色
+					opacity: 0.8, //线透明度
 					weight: 1, //线宽
 					fill: true, //需要填充内部
-					fillColor: "#3269e7",
-					fillOpacity: 0.2,
+					fillColor: "#f94141",
+					fillOpacity: 0.1,
 					dashArray: '5,10',
 					pane: name
 				})
 				this.GisLayerPane.push(FatherInner)
 				this.GisMap.addLayer(FatherInner.Layers)
-
+				this.InitMarkerName('县边界', '县名')
 				//根据所有外边界定位视野区域
 				// let allOutBoundary = L.geoJSON(innerGeojsonData)
 				// this.GisMap.fitBounds(allOutBoundary.getBounds())
+			},
+
+			// 叠加父边界
+			InitFatherBoundary1: function(data, name) {
+				let innerGeojsonData = data
+				let FatherInner = new Array()
+				FatherInner.name = name
+				FatherInner.Layers = new L.layerGroup()
+				this.AddGeoBoundary(innerGeojsonData, FatherInner, {
+					color: "#fff771", //线颜色
+					opacity: 0, //线透明度
+					weight: 1, //线宽
+					fill: true, //需要填充内部
+					fillColor: "#f94141",
+					fillOpacity: 0,
+					dashArray: '5,10',
+					pane: name
+				})
+				this.GisLayerPane.push(FatherInner)
+				this.GisMap.addLayer(FatherInner.Layers)
+				//根据所有外边界定位视野区域
+				// let allOutBoundary = L.geoJSON(innerGeojsonData)
+				// this.GisMap.fitBounds(allOutBoundary.getBounds())
+			},
+
+			// 设置区县名字
+			InitMarkerName: function(data, name) {
+				let SonName = this.GetMarkerLayer(data)
+				let BoundaryName = new Array()
+				BoundaryName.name = name
+				BoundaryName.Layers = new L.layerGroup()
+				let city_name
+				if (name == '县名') {
+					city_name = 'county_name'
+				} else {
+					city_name = 'town_name'
+				}
+				for (var i = 0; i < SonName.length; i++) {
+					// 设置多个marker
+					let marker = L.marker([SonName[i].center.lat, SonName[i].center.lng], {
+						pane: name,
+						interactive: true, //该Marker是否可以拥有事件
+						icon: L.divIcon({
+							className: "city-name",
+							html: `<div class="${city_name}"> ${SonName[i].name} </div>`,
+						}),
+					}).addTo(this.GisMap)
+
+					BoundaryName.Layers.addLayer(marker)
+				}
+				this.GisLayerPane.push(BoundaryName)
+				this.GisMap.addLayer(BoundaryName.Layers)
+				//Map_Leaflet_Index.GisLayerLoaded.push(BoundaryName);
+			},
+
+			//获取中心点
+			GetMarkerLayer: function(name) {
+				let bound_center = []
+				let bjLayers = this.GetLayer(name).getLayers()[0]
+				//遍历边界
+				let layerIndex = Object.keys(bjLayers._layers)
+				for (let j = 0; j < layerIndex.length; j++) {
+					let polyline = bjLayers._layers[layerIndex[j]]
+					if (polyline.feature.properties.name) {
+						let center = null
+						let center_data = {}
+						if (polyline.hasOwnProperty('_layers')) {
+							center = polyline.getLayers()[0].getCenter()
+						} else {
+							center = polyline.getCenter()
+						}
+
+						center_data.name = polyline.feature.properties.name
+						center_data.center = center
+
+						bound_center.push(center_data)
+					}
+				}
+
+				return bound_center
+			},
+
+			//获取图层
+			GetLayer: function(menuName) {
+				let result = null
+				for (var i = 0; i < this.GisLayerPane.length; i++) {
+					if (this.GisLayerPane[i] !== null && this.GisLayerPane[i].name === menuName) {
+						result = this.GisLayerPane[i]
+						break
+					}
+				}
+
+				return result === null ? null : result.Layers
 			},
 
 			// 叠加当前定位
@@ -1755,6 +1917,7 @@
 
 			// 叠加要素数据
 			InitTypeMarker(newValue, oldValue, ownerInstance, instance) {
+				console.log(222);
 				if (this.HasLayer("地图要素")) {
 					this.RemoveLayer("地图要素")
 				}
@@ -1874,6 +2037,12 @@
 				return color
 			},
 
+			// 回到默认位置
+			Init_Reset(newValue, oldValue, ownerInstance, instance) {
+				if (newValue.length == 0) return false
+				this.GisMap.setView([newValue[0].latitude, newValue[0].longitude], 12.5)
+			},
+
 			// 叠加雷达
 			InitRadar(newValue, oldValue, ownerInstance, instance) {
 				if (this.HasLayer("雷达图")) {
@@ -1955,9 +2124,8 @@
 					this.RemoveLayer("色斑图")
 				}
 				if (newValue.length == 0) return false
-				console.log(newValue[0]);
 				let geo = newValue[0]
-				let clipCoords = turf.getCoords(Data.features[0])
+				let clipCoords = turf.getCoords(Data1.features[0])
 				let mapLayer_geo = new Array()
 				mapLayer_geo.name = "色斑图"
 				mapLayer_geo.Layers = new L.layerGroup()

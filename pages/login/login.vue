@@ -59,6 +59,10 @@
 	import {
 		Mcaptcha
 	} from '@/static/javascript/mcaptcha.js'
+	import {
+		getJsonData,
+		changeData
+	} from '@/static/javascript/storage.js'
 	export default {
 		data() {
 			return {
@@ -66,9 +70,9 @@
 					name: 'login_name.png'
 				},
 				loginInfo: {
-					LoginName: 'gysqxj001',
-					Password: 'qwer1234',
-					VerifyCode: ''
+					LoginName: '',
+					Password: '',
+					VerifyCode: '',
 				},
 				rules: {
 					LoginName: {
@@ -83,6 +87,7 @@
 
 				downLineShow: false,
 				percent: '',
+				pathUrl: 'LoginData',
 			}
 		},
 		onReady() {
@@ -103,6 +108,27 @@
 
 			// #ifdef APP-PLUS
 			this.getSysVersion()
+
+			// 本地文件读取
+			//兼容安卓10+ （通用）
+			const pathUrl1 = plus.io.convertLocalFileSystemURL("_downloads/") + this.Name + '.json'
+			//安卓10以下路径地址  
+			const pathUrl2 = '/storage/emulated/0/' + this.Name + '.json'
+			const pathUrl = plus.io.convertLocalFileSystemURL("_downloads/") + this.pathUrl + '.json'
+			getJsonData(pathUrl).then(res => {
+				if (res === '') {
+					this.loginInfo = {
+						LoginName: '',
+						Password: '',
+						VerifyCode: ''
+					}
+					const pathUrl2 = plus.io.convertLocalFileSystemURL("_downloads/") + this.pathUrl + '.json'
+					changeData(pathUrl, this.loginInfo)
+				} else {
+					this.loginInfo = JSON.parse(res)
+				}
+			})
+
 			// #endif
 		},
 
@@ -120,7 +146,7 @@
 					key: 'GYFZJZ_Code',
 					success: (res) => {
 						_this.GYFZJZ_Code = res.data;
-						this.$http.get('/Admin/CustomerApp/UpdateVersion2/true')
+						this.$http.get('/Admin/CustomerApp/UpdateVersion/true')
 							.then(res => {
 								if (res.Status === 1) {
 									let appversion = res.Data.Version
@@ -223,10 +249,14 @@
 						})
 						this.$store.commit('Login', res.Data)
 						let admin = {
-							name: this.loginInfo.LoginName,
-							pwd: this.loginInfo.Password
+							LoginName: this.loginInfo.LoginName,
+							Password: this.loginInfo.Password,
+							VerifyCode: ''
 						}
 						this.$store.commit('GetAdmin', admin)
+						// 用户名密码保存本地文件
+						const pathUrl = plus.io.convertLocalFileSystemURL("_downloads/") + this.pathUrl + '.json'
+						changeData(pathUrl, admin)
 						uni.hideToast()
 						// 跳转首页
 						uni.navigateTo({
@@ -247,8 +277,8 @@
 					return false
 				}
 				return Bool
-			},
-		}
+			}
+		},
 	}
 </script>
 

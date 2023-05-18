@@ -8,9 +8,9 @@ export const timeOut = () => {
 	// 当前时间
 	let currentTime = null
 	// 超时时间【可以自己设置】
-	let sys_timeout = 10 * 60 * 1000
+	let sys_timeout = 12 * 60 * 1000
 	// 每隔多长时间检查是否超时【可以自己设置】
-	let check_time = 10 * 60 * 1000
+	let check_time = 12 * 60 * 1000
 	// 计时器【此为功能实现的方法，现在为空】	
 	const isTimeOut = () => {
 		// 页面上一次的点击时间
